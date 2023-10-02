@@ -21,9 +21,12 @@
 
 package de.appplant.cordova.plugin.background;
 
+import static android.os.PowerManager.PARTIAL_WAKE_LOCK;
+
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -34,11 +37,8 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.app.NotificationChannel;
 
 import org.json.JSONObject;
-
-import static android.os.PowerManager.PARTIAL_WAKE_LOCK;
 
 /**
  * Puts the service in a foreground state, where the system considers it to be
@@ -219,10 +219,15 @@ public class ForegroundService extends Service {
         setColor(notification, settings);
 
         if (intent != null && settings.optBoolean("resume")) {
+          int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+
+          if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            flags = flags | PendingIntent.FLAG_MUTABLE;
+          }
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             PendingIntent contentIntent = PendingIntent.getActivity(
                     context, NOTIFICATION_ID, intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT);
+                    flags);
 
 
             notification.setContentIntent(contentIntent);
